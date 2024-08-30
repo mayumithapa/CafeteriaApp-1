@@ -60,7 +60,11 @@ const App = () => {
   const [warningDialogOpen, setWarningDialogOpen] = useState(false);
   const [warningMessage, setWarningMessage] = useState('');
 
+  const [activeComponent, setActiveComponent] = useState('grid');
 
+  const handleComponentSwitch = (component) => {
+    setActiveComponent(component);
+  };
 
   const handleAddItemsFromJson = () => {
     try {
@@ -294,9 +298,7 @@ const App = () => {
   };
   const isSummaryConfirmDisabled = selectedItems.length === 0;
   const handleConfirm = () => {
-    // if(selectedItems.length===0){
 
-    // }
     if (selectedUsers.length > 0 && selectedItems.length > 0) {
       const newEntries = selectedUsers.map((user) => ({
         user,
@@ -653,73 +655,77 @@ const App = () => {
         Save
       </Button>
 
-      <Grid item xs={12}>
-        <br /><Divider sx={{ borderBottomWidth: 2 }} /><br />
-        <Box display={'flex'} justifyContent={'center'} >
-          <ButtonGroup
-            disableElevation
-            variant="contained"
-            aria-label="Disabled button group"
-          >
-            <Button>Receipt</Button>
-            <Button>History</Button>
-          </ButtonGroup>
-        </Box>
-        <br />
-        <Typography variant='h4' textAlign={'center'}>Receipt</Typography>
-        <TableContainer
-          component={Paper}
-          elevation={3}
-          style={{ marginTop: '20px', padding: 0 }}
+      <br /><br />
+      <Divider sx={{ borderBottomWidth: 2 }} /><br />
+      <Box display={'flex'} justifyContent={'center'} >
+        <ButtonGroup
+          disableElevation
+          variant="contained"
+          aria-label="Disabled button group"
         >
-          <Table>
-            <TableHead>
-              <TableRow>
-                <TableCell style={{ width: '30%' }}>User</TableCell>
-                <TableCell style={{ width: '40%' }}>Items</TableCell>
-                <TableCell style={{ width: '15%' }}>Total Cost</TableCell>
-                <TableCell style={{ width: '15%' }}>Actions</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {summary.map((entry, index) => (
-                <TableRow key={index}>
-                  <TableCell>{entry.user}</TableCell>
-                  <TableCell>
-                    {entry.items.map((i) => (
-                      <div key={i.itemName}>
-                        {i.itemName} x {i.quantity}
-                      </div>
-                    ))}
+          <Button onClick={() => handleComponentSwitch('grid')}>Receipt</Button>
+          <Button onClick={() => handleComponentSwitch('paper')}>History</Button>
+        </ButtonGroup>
+      </Box>
+
+      {activeComponent === 'grid' && (
+        <Grid item xs={12} id="receipt">
+          <br />
+          <Typography variant='h4' textAlign={'center'}>Receipt</Typography>
+          <TableContainer
+            component={Paper}
+            elevation={3}
+            style={{ marginTop: '20px', padding: 0 }}
+          >
+            <Table>
+              <TableHead>
+                <TableRow>
+                  <TableCell style={{ width: '30%' }}>User</TableCell>
+                  <TableCell style={{ width: '40%' }}>Items</TableCell>
+                  <TableCell style={{ width: '15%' }}>Total Cost</TableCell>
+                  <TableCell style={{ width: '15%' }}>Actions</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {summary.map((entry, index) => (
+                  <TableRow key={index}>
+                    <TableCell>{entry.user}</TableCell>
+                    <TableCell>
+                      {entry.items.map((i) => (
+                        <div key={i.itemName}>
+                          {i.itemName} x {i.quantity}
+                        </div>
+                      ))}
+                    </TableCell>
+                    <TableCell>₹{entry.totalCost}</TableCell>
+                    <TableCell>
+                      <IconButton onClick={() => handleEdit(entry.user)}>
+                        <Edit />
+                      </IconButton>
+                      <IconButton onClick={() => handleDelete(entry.user)}>
+                        <Delete />
+                      </IconButton>
+                    </TableCell>
+                  </TableRow>
+                ))}
+
+                <TableRow>
+                  <TableCell colSpan={1} style={{ fontWeight: 'bold' }}>
+                    Total Users: {totalUsers}
                   </TableCell>
-                  <TableCell>₹{entry.totalCost}</TableCell>
-                  <TableCell>
-                    <IconButton onClick={() => handleEdit(entry.user)}>
-                      <Edit />
-                    </IconButton>
-                    <IconButton onClick={() => handleDelete(entry.user)}>
-                      <Delete />
-                    </IconButton>
+                  <TableCell colSpan={1} style={{ fontWeight: 'bold' }}>
+                    Total Items Ordered: {totalItemsOrdered}
+                  </TableCell>
+                  <TableCell colSpan={2} style={{ fontWeight: 'bold' }}>
+                    Total Order Value: ₹{totalOrderValue}
                   </TableCell>
                 </TableRow>
-              ))}
-
-              <TableRow>
-                <TableCell colSpan={1} style={{ fontWeight: 'bold' }}>
-                  Total Users: {totalUsers}
-                </TableCell>
-                <TableCell colSpan={1} style={{ fontWeight: 'bold' }}>
-                  Total Items Ordered: {totalItemsOrdered}
-                </TableCell>
-                <TableCell colSpan={2} style={{ fontWeight: 'bold' }}>
-                  Total Order Value: ₹{totalOrderValue}
-                </TableCell>
-              </TableRow>
-            </TableBody>
-          </Table>
-        </TableContainer>
-      </Grid>
-
+              </TableBody>
+            </Table>
+          </TableContainer>
+        </Grid>)}
+      {activeComponent === 'paper' && (
+        <Paper id="history">History</Paper>)}
       <Dialog open={saveDialogOpen} onClose={() => setSaveDialogOpen(false)}>
         <DialogTitle>Summary</DialogTitle>
         <DialogContent>
@@ -741,7 +747,7 @@ const App = () => {
                     secondary={`Cost: ₹${item.cost * item.quantity}, Quantity: ${item.quantity}`}
                   />
                   <Box display={'flex'} justifyContent={'flex-end'} marginLeft={'10px'}>
-                    <IconButton onClick={() => handleQuantityChange(item, -1)}><Remove/></IconButton>
+                    <IconButton onClick={() => handleQuantityChange(item, -1)}><Remove /></IconButton>
                     <IconButton onClick={() => handleQuantityChange(item, 1)}><Add /></IconButton>
                   </Box>
                 </ListItem>
@@ -771,7 +777,6 @@ const App = () => {
           </Button>
         </DialogActions>
       </Dialog>
-
 
       <Dialog open={userDialogOpen} onClose={() => setUserDialogOpen(false)}>
         <DialogTitle>Add User</DialogTitle>
